@@ -193,41 +193,31 @@ function renderResults(cars, filters) {
   }
 
   list.innerHTML = cars.map(car => buildCarCard(car)).join('');
-  list.querySelectorAll('.car-card').forEach(card => {
-    card.addEventListener('click', e => {
-      if (e.target.closest('.btn-heart')) return;
-      const id = parseInt(card.dataset.id);
-      openCarModal(id);
-    });
-  });
-  list.querySelectorAll('.btn-heart').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const id = parseInt(btn.dataset.id);
-      toggleSave(id);
-      btn.classList.toggle('saved', state.savedCars.includes(id));
-      btn.textContent = state.savedCars.includes(id) ? '♥' : '♡';
-    });
-  });
+  // Click-Handler bereits inline in buildCarCard via onclick
+  // Kein zusätzlicher addEventListener nötig
 }
 
 function buildCarCard(car) {
   const saved = state.savedCars.includes(car.id);
+  const url = car.url || car.link || '#';
   return `
-    <div class="car-card" data-id="${car.id}">
-      <div class="car-card-img">
-        <div class="placeholder-icon">${car.img}</div>
-        <span class="car-badge-new">${car.age}</span>
-        <span class="car-badge-src">${car.src}</span>
+    <div class="car-card" data-id="${car.id}" data-url="${url}">
+      <div class="car-card-img" style="cursor:pointer" onclick="openCarUrl('${url}')">
+        <div class="placeholder-icon">${car.img || '🚗'}</div>
+        <span class="car-badge-new">${car.age || 'Neu'}</span>
+        <span class="car-badge-src">${car.src || car.sourceName || ''}</span>
       </div>
       <div class="car-card-body">
-        <div class="car-card-title">${car.title}</div>
-        <div class="car-card-meta">${car.year} · ${car.km.toLocaleString('de-DE')} km · ${car.fuel} · ${car.power}</div>
+        <div class="car-card-title" style="cursor:pointer" onclick="openCarUrl('${url}')">${car.title}</div>
+        <div class="car-card-meta">${car.year || '—'} · ${car.km ? car.km.toLocaleString('de-DE') + ' km' : '—'} · ${car.fuel || '—'} · ${car.power || '—'}</div>
         <div class="car-card-footer">
-          <div class="car-card-price">€ ${car.price.toLocaleString('de-DE')}</div>
+          <div class="car-card-price" style="cursor:pointer" onclick="openCarUrl('${url}')">
+            ${car.price ? '€ ' + car.price.toLocaleString('de-DE') : 'Preis auf Anfrage'}
+          </div>
           <div class="car-card-right">
-            <span class="dist-tag">📍 ${car.dist} km</span>
-            <button class="btn-heart ${saved ? 'saved' : ''}" data-id="${car.id}" aria-label="Speichern">
+            <span class="dist-tag" style="cursor:pointer" onclick="openCarUrl('${url}')">📍 ${car.dist || '—'} km</span>
+            <button class="btn-heart ${saved ? 'saved' : ''}" data-id="${car.id}" aria-label="Speichern"
+              onclick="event.stopPropagation(); toggleHeartBtn(this, ${car.id})">
               ${saved ? '♥' : '♡'}
             </button>
           </div>
@@ -266,9 +256,9 @@ function openCarModal(id) {
     </div>
     <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px">${car.description}</p>
     <div class="modal-actions">
-      <button class="btn-primary" onclick="openLink('${car.url}')">
+      <button class="btn-primary" onclick="openCarUrl('${car.url || car.link}')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Inserat öffnen
+        Inserat auf ${car.src || car.sourceName || 'Börse'} öffnen ↗
       </button>
       <button class="btn-secondary" onclick="toggleSaveModal(${car.id})" id="modal-save-btn">
         ${saved ? '♥ Gespeichert' : '♡ Merken'}
@@ -287,6 +277,21 @@ function closeModal() {
 
 function openLink(url) {
   window.open(url, '_blank');
+}
+
+function openCarUrl(url) {
+  if (!url || url === '#' || url === 'undefined') {
+    showToast('⚠️ Kein Link verfügbar');
+    return;
+  }
+  window.open(url, '_blank');
+}
+
+function toggleHeartBtn(btn, id) {
+  toggleSave(id);
+  const saved = state.savedCars.includes(id);
+  btn.textContent = saved ? '♥' : '♡';
+  btn.classList.toggle('saved', saved);
 }
 
 function toggleSaveModal(id) {
@@ -330,20 +335,7 @@ function renderSavedList() {
   }
   const cars = DEMO_CARS.filter(c => state.savedCars.includes(c.id));
   list.innerHTML = cars.map(car => buildCarCard(car)).join('');
-  list.querySelectorAll('.car-card').forEach(card => {
-    card.addEventListener('click', e => {
-      if (e.target.closest('.btn-heart')) return;
-      openCarModal(parseInt(card.dataset.id));
-    });
-  });
-  list.querySelectorAll('.btn-heart').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const id = parseInt(btn.dataset.id);
-      toggleSave(id);
-      renderSavedList();
-    });
-  });
+  // Click-Handler inline in buildCarCard
 }
 
 // ===== SAVED SEARCHES =====
@@ -423,14 +415,24 @@ function renderActivity(cars) {
   ];
   feed.innerHTML = cars.slice(0, 8).map((car, i) => {
     const ic = icons[i % 3];
+    const url = car.url || car.link || '#';
+    const price = car.price ? '€ ' + car.price.toLocaleString('de-DE') : 'Preis auf Anfrage';
+    const src = car.src || car.sourceName || '';
+    const dist = car.dist ? car.dist + ' km' : '';
     return `
-      <div class="activity-item">
+      <div class="activity-item" onclick="openCarUrl('${url}')"
+        style="cursor:pointer; transition:background 0.15s;"
+        onmouseover="this.style.background='var(--bg-raised)'"
+        onmouseout="this.style.background=''">
         <div class="activity-dot ${ic.cls}">${ic.emoji}</div>
         <div class="activity-info">
           <div class="activity-name">${car.title}</div>
-          <div class="activity-meta">${car.src} · € ${car.price.toLocaleString('de-DE')} · ${car.dist} km</div>
+          <div class="activity-meta">${src} · ${price}${dist ? ' · ' + dist : ''}</div>
         </div>
-        <div class="activity-time">${car.age}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          <div class="activity-time">${car.age || car.scrapedAt ? new Date(car.scrapedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : ''}</div>
+          <div style="font-size:10px;color:var(--accent)">↗ öffnen</div>
+        </div>
       </div>`;
   }).join('');
 }
