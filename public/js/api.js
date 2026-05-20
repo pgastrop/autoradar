@@ -1,4 +1,7 @@
-const API_BASE = '';
+// Railway-Server URL – wird nach dem Deploy eingetragen
+// Solange leer: Demo-Modus
+const RAILWAY_URL = 'http://gastrop.synology.me:3001';
+const API_BASE = RAILWAY_URL;
 let serverAvailable = false;
 
 async function checkServer() {
