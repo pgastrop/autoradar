@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>AutoRadar – Fahrzeugsuche</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Splash Screen -->
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="splash-logo">
+        <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+          <circle cx="26" cy="26" r="26" fill="#00ff88"/>
+          <path d="M10 30 L18 20 L26 24 L34 16 L44 22" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="18" cy="36" r="4" fill="#0a0a0f"/>
+          <circle cx="36" cy="36" r="4" fill="#0a0a0f"/>
+          <rect x="10" y="28" width="32" height="10" rx="3" fill="#0a0a0f"/>
+        </svg>
+      </div>
+      <div class="splash-title">AUTO<span>RADAR</span></div>
+      <div class="splash-sub">Alle Börsen. Ein Blick.</div>
+      <div class="splash-loader"><div class="splash-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- App Shell -->
+  <div id="app" class="hidden">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="header-logo">AR</div>
+        <div class="header-title">AutoRadar</div>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn" id="btn-alerts" aria-label="Benachrichtigungen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="notif-dot hidden" id="notif-dot"></span>
+        </button>
+        <button class="icon-btn" id="btn-save-search" aria-label="Suche speichern">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+
+      <!-- TAB: SUCHE -->
+      <section class="tab-page active" id="page-search">
+        <div class="search-hero">
+          <div class="hero-label">STANDORT & UMKREIS</div>
+          <div class="plz-row">
+            <div class="plz-input-wrap">
+              <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <input type="text" id="input-plz" placeholder="PLZ eingeben…" maxlength="5" pattern="[0-9]{5}" inputmode="numeric">
+              <div id="plz-city" class="plz-city"></div>
+            </div>
+          </div>
+          <div class="radius-control">
+            <div class="radius-labels">
+              <span>10 km</span>
+              <span id="radius-val" class="radius-current">50 km</span>
+              <span>200 km</span>
+            </div>
+            <input type="range" id="radius-slider" min="10" max="200" step="5" value="50">
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">FAHRZEUGTYP</div>
+          <div class="category-grid" id="category-grid">
+            <button class="cat-btn active" data-cat="alle">
+              <span class="cat-icon">🚗</span>
+              <span>Alle</span>
+            </button>
+            <button class="cat-btn" data-cat="kombi">
+              <span class="cat-icon">🚙</span>
+              <span>Kombi</span>
+            </button>
+            <button class="cat-btn" data-cat="suv">
+              <span class="cat-icon">🛻</span>
+              <span>SUV</span>
+            </button>
+            <button class="cat-btn" data-cat="limousine">
+              <span class="cat-icon">🏎</span>
+              <span>Limousine</span>
+            </button>
+            <button class="cat-btn" data-cat="kleinwagen">
+              <span class="cat-icon">🚕</span>
+              <span>Kleinwagen</span>
+            </button>
+            <button class="cat-btn" data-cat="van">
+              <span class="cat-icon">🚐</span>
+              <span>Van</span>
+            </button>
+            <button class="cat-btn" data-cat="cabrio">
+              <span class="cat-icon">🏖</span>
+              <span>Cabrio</span>
+            </button>
+            <button class="cat-btn" data-cat="elektro">
+              <span class="cat-icon">⚡</span>
+              <span>Elektro</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">PREISRAHMEN</div>
+          <div class="price-row">
+            <div class="price-input-wrap">
+              <span class="currency">€</span>
+              <input type="number" id="price-min" placeholder="Min" min="0" max="999999" step="500">
+            </div>
+            <div class="price-dash">—</div>
+            <div class="price-input-wrap">
+              <span class="currency">€</span>
+              <input type="number" id="price-max" placeholder="Max" min="0" max="999999" step="500">
+            </div>
+          </div>
+          <div class="price-presets">
+            <button class="preset-btn" data-min="0" data-max="10000">bis 10k</button>
+            <button class="preset-btn" data-min="10000" data-max="20000">10–20k</button>
+            <button class="preset-btn" data-min="20000" data-max="35000">20–35k</button>
+            <button class="preset-btn" data-min="35000" data-max="999999">35k+</button>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">BAUJAHR</div>
+          <div class="year-row">
+            <select id="year-from" class="year-select">
+              <option value="">Ab Jahr</option>
+              <option>2015</option><option>2016</option><option>2017</option>
+              <option>2018</option><option>2019</option><option>2020</option>
+              <option>2021</option><option>2022</option><option>2023</option><option>2024</option>
+            </select>
+            <span class="year-dash">→</span>
+            <select id="year-to" class="year-select">
+              <option value="">Bis Jahr</option>
+              <option>2020</option><option>2021</option><option>2022</option>
+              <option>2023</option><option>2024</option><option>2025</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">KILOMETERSTAND</div>
+          <div class="price-row">
+            <div class="price-input-wrap">
+              <input type="number" id="km-min" placeholder="Min km" min="0">
+            </div>
+            <div class="price-dash">—</div>
+            <div class="price-input-wrap">
+              <input type="number" id="km-max" placeholder="Max km" max="999999">
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">QUELLEN AUSWÄHLEN</div>
+          <div class="sources-grid" id="sources-grid">
+            <button class="source-btn active" data-src="mobile">
+              <div class="source-indicator"></div>
+              <span>mobile.de</span>
+            </button>
+            <button class="source-btn active" data-src="autoscout">
+              <div class="source-indicator"></div>
+              <span>AutoScout24</span>
+            </button>
+            <button class="source-btn active" data-src="kleinanzeigen">
+              <div class="source-indicator"></div>
+              <span>Kleinanzeigen</span>
+            </button>
+            <button class="source-btn active" data-src="autohero">
+              <div class="source-indicator"></div>
+              <span>AutoHero</span>
+            </button>
+            <button class="source-btn" data-src="heycar">
+              <div class="source-indicator"></div>
+              <span>heycar</span>
+            </button>
+            <button class="source-btn" data-src="pkw">
+              <div class="source-indicator"></div>
+              <span>pkw.de</span>
+            </button>
+            <button class="source-btn" data-src="autouncle">
+              <div class="source-indicator"></div>
+              <span>AutoUncle</span>
+            </button>
+            <button class="source-btn" data-src="instamotion">
+              <div class="source-indicator"></div>
+              <span>Instamotion</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="search-cta">
+          <button class="btn-search" id="btn-search">
+            <span id="search-btn-text">Jetzt suchen</span>
+            <div class="search-spinner hidden" id="search-spinner"></div>
+          </button>
+        </div>
+      </section>
+
+      <!-- TAB: TREFFER -->
+      <section class="tab-page" id="page-results">
+        <div class="results-header">
+          <div class="results-meta">
+            <span id="results-count-label">0 Fahrzeuge</span>
+            <span class="results-plz-label" id="results-plz-label"></span>
+          </div>
+          <select id="sort-select" class="sort-select">
+            <option value="new">Neueste zuerst</option>
+            <option value="price_asc">↑ Preis</option>
+            <option value="price_desc">↓ Preis</option>
+            <option value="dist_asc">↑ Entfernung</option>
+            <option value="km_asc">↑ km-Stand</option>
+          </select>
+        </div>
+        <div id="results-list" class="results-list"></div>
+      </section>
+
+      <!-- TAB: MONITOR -->
+      <section class="tab-page" id="page-monitor">
+        <div class="monitor-top">
+          <div class="monitor-heading">
+            <div>
+              <div class="monitor-title">Live-Monitor</div>
+              <div class="monitor-sub">Inserate in Echtzeit verfolgen</div>
+            </div>
+            <div class="live-indicator" id="live-indicator">
+              <span class="live-dot"></span>
+              <span>LIVE</span>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-tile">
+              <div class="stat-number" id="stat-today">—</div>
+              <div class="stat-name">Heute neu</div>
+            </div>
+            <div class="stat-tile">
+              <div class="stat-number" id="stat-week">—</div>
+              <div class="stat-name">Diese Woche</div>
+            </div>
+            <div class="stat-tile">
+              <div class="stat-number" id="stat-avg">—</div>
+              <div class="stat-name">Ø Preis</div>
+            </div>
+            <div class="stat-tile">
+              <div class="stat-number" id="stat-low">—</div>
+              <div class="stat-name">Günstigstes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">NEUESTE AKTIVITÄTEN</div>
+          <div id="activity-feed" class="activity-feed">
+            <div class="empty-state">
+              <div class="empty-icon">📡</div>
+              <div class="empty-text">Monitor wird nach der ersten Suche aktiv</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">PREISVERLAUF (LETZTE 7 TAGE)</div>
+          <div class="chart-wrap">
+            <canvas id="price-chart" height="120"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: MERKLISTE -->
+      <section class="tab-page" id="page-saved">
+        <div class="section-block">
+          <div class="block-label">GESPEICHERTE FAHRZEUGE</div>
+          <div id="saved-list" class="results-list">
+            <div class="empty-state">
+              <div class="empty-icon">🔖</div>
+              <div class="empty-text">Noch keine Fahrzeuge gespeichert.<br>Tippe beim Inserat auf ♥</div>
+            </div>
+          </div>
+        </div>
+        <div class="section-block">
+          <div class="block-label">GESPEICHERTE SUCHEN</div>
+          <div id="saved-searches-list">
+            <div class="empty-state" id="no-saved-searches">
+              <div class="empty-icon">🔍</div>
+              <div class="empty-text">Keine gespeicherten Suchen</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: EINSTELLUNGEN -->
+      <section class="tab-page" id="page-settings">
+        <div class="section-block">
+          <div class="block-label">BENACHRICHTIGUNGEN</div>
+          <div class="settings-card">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Neue Inserate</div>
+                <div class="setting-desc">Sofort bei neuen Treffern</div>
+              </div>
+              <div class="toggle-wrap" onclick="toggleThis(this)">
+                <div class="toggle on"><div class="knob"></div></div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Preissenkungen</div>
+                <div class="setting-desc">Bei Preisänderungen informieren</div>
+              </div>
+              <div class="toggle-wrap" onclick="toggleThis(this)">
+                <div class="toggle on"><div class="knob"></div></div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Tagesübersicht</div>
+                <div class="setting-desc">Täglich 09:00 Uhr</div>
+              </div>
+              <div class="toggle-wrap" onclick="toggleThis(this)">
+                <div class="toggle"><div class="knob"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">AUTO-REFRESH</div>
+          <div class="settings-card">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Monitor Intervall</div>
+              </div>
+              <select class="inline-select" id="refresh-interval">
+                <option value="60">1 Min</option>
+                <option value="300" selected>5 Min</option>
+                <option value="600">10 Min</option>
+                <option value="1800">30 Min</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Auto-Refresh aktiv</div>
+              </div>
+              <div class="toggle-wrap" onclick="toggleThis(this)">
+                <div class="toggle on"><div class="knob"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">DARSTELLUNG</div>
+          <div class="settings-card">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Dark Mode</div>
+              </div>
+              <div class="toggle-wrap" onclick="toggleDark(this)">
+                <div class="toggle on" id="dark-toggle"><div class="knob"></div></div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-name">Kompakte Ansicht</div>
+              </div>
+              <div class="toggle-wrap" onclick="toggleThis(this)">
+                <div class="toggle"><div class="knob"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="block-label">APP INFO</div>
+          <div class="settings-card">
+            <div class="setting-row"><div class="setting-name">Version</div><span class="setting-val">1.0.0</span></div>
+            <div class="setting-row"><div class="setting-name">Quellen</div><span class="setting-val">8 Börsen</span></div>
+            <div class="setting-row"><div class="setting-name">Letztes Update</div><span class="setting-val" id="last-update">—</span></div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <button class="btn-danger" onclick="clearAllData()">Alle Daten löschen</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-page="search">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Suche</span>
+      </button>
+      <button class="nav-btn" data-page="results">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Treffer</span>
+        <span class="nav-badge hidden" id="results-badge">0</span>
+      </button>
+      <button class="nav-btn" data-page="monitor">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Monitor</span>
+      </button>
+      <button class="nav-btn" data-page="saved">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span>Merkliste</span>
+        <span class="nav-badge hidden" id="saved-badge">0</span>
+      </button>
+      <button class="nav-btn" data-page="settings">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Einstellungen</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- Car Detail Modal -->
+  <div id="car-modal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-sheet" id="modal-sheet">
+      <div class="modal-handle"></div>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
