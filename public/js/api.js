@@ -11,15 +11,22 @@ async function checkServer() {
 
 async function triggerScrape(params) {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     const res = await fetch('/api/scrape', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     const data = await res.json();
     serverAvailable = true;
     return data;
-  } catch { serverAvailable = false; return null; }
+  } catch {
+    serverAvailable = false;
+    return null; // Fallback auf Demo-Daten in app.js
+  }
 }
 
 async function fetchListings(filters = {}) {

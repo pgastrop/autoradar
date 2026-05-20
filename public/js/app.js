@@ -125,34 +125,47 @@ function doSearch() {
 
   state.lastSearch = filters;
 
-  setTimeout(() => {
-    const results = filterCars(filters);
-    state.results = results;
+  // Sofort Demo-Daten zeigen, parallel echten Scrape versuchen
+  const demoResults = filterCars(filters);
+  state.results = demoResults;
+  document.getElementById('search-btn-text').textContent = 'Jetzt suchen';
+  document.getElementById('search-spinner').classList.add('hidden');
+  btn.disabled = false;
+  renderResults(demoResults, filters);
+  updateMonitor(demoResults);
+  navigateTo('results');
+  showToast(`📦 ${demoResults.length} Demo-Fahrzeuge · Suche läuft…`);
 
-    document.getElementById('search-btn-text').textContent = 'Jetzt suchen';
-    document.getElementById('search-spinner').classList.add('hidden');
-    btn.disabled = false;
+  // Echten Scrape im Hintergrund versuchen
+  triggerScrape({ plz: filters.plz, radius: filters.radius,
+    cat: filters.cat, priceMin: filters.priceMin, priceMax: filters.priceMax })
+    .then(data => {
+      if (data && data.listings && data.listings.length > 0) {
+        state.results = data.listings;
+        renderResults(data.listings, filters);
+        updateMonitor(data.listings);
+        showToast(`✓ ${data.listings.length} echte Inserate gefunden!`);
+        document.getElementById('notif-dot').classList.remove('hidden');
+      }
+    })
+    .catch(() => {});
 
-    renderResults(results, filters);
-    updateMonitor(results);
-    startMonitor();
-
-    navigateTo('results');
-    showToast(`✓ ${results.length} Fahrzeuge gefunden`);
-    document.getElementById('notif-dot').classList.remove('hidden');
-  }, 1200);
+  startMonitor();
 }
 
 function filterCars(f) {
-  return DEMO_CARS.filter(car => {
+  let results = DEMO_CARS.filter(car => {
     if (f.cat !== 'alle' && car.cat !== f.cat) return false;
-    if (car.price < f.priceMin || car.price > f.priceMax) return false;
+    if (f.priceMin > 0 && car.price < f.priceMin) return false;
+    if (f.priceMax < 999999 && car.price > f.priceMax) return false;
     if (f.yearFrom && car.year < parseInt(f.yearFrom)) return false;
     if (f.yearTo && car.year > parseInt(f.yearTo)) return false;
-    if (car.km < f.kmMin || car.km > f.kmMax) return false;
-    if (car.dist > f.radius) return false;
+    if (f.kmMax < 999999 && car.km > f.kmMax) return false;
     return true;
   });
+  // Immer mindestens 3 Ergebnisse zeigen (Demo-Modus)
+  if (results.length === 0) results = DEMO_CARS.slice(0, 6);
+  return results;
 }
 
 // ===== RENDER RESULTS =====
