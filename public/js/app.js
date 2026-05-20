@@ -57,7 +57,7 @@ function initSearch() {
 
   plzInput.addEventListener('input', () => {
     const plz = plzInput.value.trim();
-    const city = PLZ_DB[plz] || (plz.length === 5 ? 'Unbekannte PLZ' : '');
+    const city = lookupPLZ(plz) || (plz.length === 5 ? 'PLZ ' + plz : '');
     document.getElementById('plz-city').textContent = city;
   });
 
@@ -111,7 +111,7 @@ function doSearch() {
 
   const filters = {
     plz,
-    city: PLZ_DB[plz] || plz,
+    city: lookupPLZ(plz) || plz,
     radius: parseInt(document.getElementById('radius-slider').value),
     cat: document.querySelector('.cat-btn.active')?.dataset.cat || 'alle',
     priceMin: parseInt(document.getElementById('price-min').value) || 0,
