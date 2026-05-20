@@ -1,3 +1,28 @@
+
+// ===== QUELLEN-FARBEN & LOGOS =====
+const SOURCE_CONFIG = {
+  'autoscout':     { name: 'AutoScout24',   color: '#FF6B00', bg: 'rgba(255,107,0,0.12)',  icon: '🔶' },
+  'mobile':        { name: 'mobile.de',     color: '#005EA8', bg: 'rgba(0,94,168,0.12)',   icon: '🔵' },
+  'kleinanzeigen': { name: 'Kleinanzeigen', color: '#C4001A', bg: 'rgba(196,0,26,0.12)',   icon: '🔴' },
+  'autohero':      { name: 'AutoHero',      color: '#00A94F', bg: 'rgba(0,169,79,0.12)',   icon: '🟢' },
+  'heycar':        { name: 'heycar',        color: '#6B2D8B', bg: 'rgba(107,45,139,0.12)', icon: '🟣' },
+  'pkw':           { name: 'pkw.de',        color: '#E4002B', bg: 'rgba(228,0,43,0.12)',   icon: '🔴' },
+  'autouncle':     { name: 'AutoUncle',     color: '#1A73E8', bg: 'rgba(26,115,232,0.12)', icon: '🔵' },
+  'instamotion':   { name: 'Instamotion',   color: '#FF4081', bg: 'rgba(255,64,129,0.12)', icon: '🟠' },
+  // Demo-Daten Fallback
+  'AutoScout24':   { name: 'AutoScout24',   color: '#FF6B00', bg: 'rgba(255,107,0,0.12)',  icon: '🔶' },
+  'mobile.de':     { name: 'mobile.de',     color: '#005EA8', bg: 'rgba(0,94,168,0.12)',   icon: '🔵' },
+  'Kleinanzeigen': { name: 'Kleinanzeigen', color: '#C4001A', bg: 'rgba(196,0,26,0.12)',   icon: '🔴' },
+  'AutoHero':      { name: 'AutoHero',      color: '#00A94F', bg: 'rgba(0,169,79,0.12)',   icon: '🟢' },
+  'heycar':        { name: 'heycar',        color: '#6B2D8B', bg: 'rgba(107,45,139,0.12)', icon: '🟣' },
+  'pkw.de':        { name: 'pkw.de',        color: '#E4002B', bg: 'rgba(228,0,43,0.12)',   icon: '🔴' },
+};
+
+function getSource(car) {
+  const key = car.source || car.src || '';
+  return SOURCE_CONFIG[key] || { name: key || 'Unbekannt', color: '#888', bg: 'rgba(136,136,136,0.12)', icon: '⚪' };
+}
+
 // ===== STATE =====
 const state = {
   currentPage: 'search',
@@ -200,22 +225,41 @@ function renderResults(cars, filters) {
 function buildCarCard(car) {
   const saved = state.savedCars.includes(car.id);
   const url = car.url || car.link || '#';
+  const src = getSource(car);
   return `
-    <div class="car-card" data-id="${car.id}" data-url="${url}">
-      <div class="car-card-img" style="cursor:pointer" onclick="openCarUrl('${url}')">
-        <div class="placeholder-icon">${car.img || '🚗'}</div>
-        <span class="car-badge-new">${car.age || 'Neu'}</span>
-        <span class="car-badge-src">${car.src || car.sourceName || ''}</span>
+    <div class="car-card" data-id="${car.id}" data-url="${url}" onclick="openCarUrl('${url}')" style="cursor:pointer">
+      
+      <!-- Quellen-Banner oben – sofort sichtbar -->
+      <div style="
+        display:flex; align-items:center; justify-content:space-between;
+        padding:7px 12px;
+        background:${src.bg};
+        border-bottom:1px solid ${src.color}44;
+        border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+      ">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:14px">${src.icon}</span>
+          <span style="font-size:12px;font-weight:700;color:${src.color};letter-spacing:0.3px">${src.name}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:11px;color:var(--text-tertiary)">${car.age || ''}</span>
+          <span style="font-size:11px;color:${src.color};font-weight:600">↗ öffnen</span>
+        </div>
       </div>
+
+      <div class="car-card-img" style="border-radius:0">
+        <div class="placeholder-icon">${car.img || '🚗'}</div>
+      </div>
+
       <div class="car-card-body">
-        <div class="car-card-title" style="cursor:pointer" onclick="openCarUrl('${url}')">${car.title}</div>
+        <div class="car-card-title">${car.title}</div>
         <div class="car-card-meta">${car.year || '—'} · ${car.km ? car.km.toLocaleString('de-DE') + ' km' : '—'} · ${car.fuel || '—'} · ${car.power || '—'}</div>
         <div class="car-card-footer">
-          <div class="car-card-price" style="cursor:pointer" onclick="openCarUrl('${url}')">
+          <div class="car-card-price">
             ${car.price ? '€ ' + car.price.toLocaleString('de-DE') : 'Preis auf Anfrage'}
           </div>
           <div class="car-card-right">
-            <span class="dist-tag" style="cursor:pointer" onclick="openCarUrl('${url}')">📍 ${car.dist || '—'} km</span>
+            <span class="dist-tag">📍 ${car.dist || '—'} km</span>
             <button class="btn-heart ${saved ? 'saved' : ''}" data-id="${car.id}" aria-label="Speichern"
               onclick="event.stopPropagation(); toggleHeartBtn(this, ${car.id})">
               ${saved ? '♥' : '♡'}
@@ -414,24 +458,44 @@ function renderActivity(cars) {
     { cls: 'amber', emoji: '📍' },
   ];
   feed.innerHTML = cars.slice(0, 8).map((car, i) => {
-    const ic = icons[i % 3];
     const url = car.url || car.link || '#';
     const price = car.price ? '€ ' + car.price.toLocaleString('de-DE') : 'Preis auf Anfrage';
-    const src = car.src || car.sourceName || '';
-    const dist = car.dist ? car.dist + ' km' : '';
+    const dist = car.dist ? ' · 📍 ' + car.dist + ' km' : '';
+    const src = getSource(car);
+    const time = car.age || (car.scrapedAt ? new Date(car.scrapedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) + ' Uhr' : '');
     return `
-      <div class="activity-item" onclick="openCarUrl('${url}')"
-        style="cursor:pointer; transition:background 0.15s;"
+      <div onclick="openCarUrl('${url}')"
+        style="
+          display:flex; align-items:center; gap:12px;
+          padding:12px; margin-bottom:6px;
+          background:var(--bg-surface);
+          border:1px solid var(--border);
+          border-left:3px solid ${src.color};
+          border-radius:var(--radius-md);
+          cursor:pointer; transition:background 0.15s;
+        "
         onmouseover="this.style.background='var(--bg-raised)'"
-        onmouseout="this.style.background=''">
-        <div class="activity-dot ${ic.cls}">${ic.emoji}</div>
-        <div class="activity-info">
-          <div class="activity-name">${car.title}</div>
-          <div class="activity-meta">${src} · ${price}${dist ? ' · ' + dist : ''}</div>
+        onmouseout="this.style.background='var(--bg-surface)'">
+        <!-- Quellen-Icon -->
+        <div style="
+          width:40px; height:40px; border-radius:8px; flex-shrink:0;
+          background:${src.bg};
+          display:flex; align-items:center; justify-content:center;
+          font-size:20px;
+        ">${src.icon}</div>
+        <!-- Info -->
+        <div style="flex:1;min-width:0">
+          <div style="
+            font-size:11px; font-weight:700; color:${src.color};
+            letter-spacing:0.5px; margin-bottom:2px;
+          ">${src.name}</div>
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${car.title}</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">${price}${dist}</div>
         </div>
+        <!-- Zeit + Pfeil -->
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
-          <div class="activity-time">${car.age || car.scrapedAt ? new Date(car.scrapedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : ''}</div>
-          <div style="font-size:10px;color:var(--accent)">↗ öffnen</div>
+          <div style="font-size:11px;color:var(--text-tertiary)">${time}</div>
+          <div style="font-size:11px;color:${src.color};font-weight:700">↗</div>
         </div>
       </div>`;
   }).join('');
