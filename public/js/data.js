@@ -172,7 +172,8 @@ const PLZ_DB = {
   // Ludwigshafen (Nachbarstadt Mannheim)
   "67059":"Ludwigshafen","67061":"Ludwigshafen","67063":"Ludwigshafen",
   "67065":"Ludwigshafen","67067":"Ludwigshafen","67069":"Ludwigshafen",
-  "67071":"Ludwigshafen","67227":"Frankenthal","67229":"Frankenthal",
+  "67071":"Ludwigshafen",
+  "68789":"St. Leon-Rot","68766":"Hockenheim","68753":"Waghäusel","68723":"Schwetzingen","68519":"Viernheim","68526":"Ladenburg","68535":"Edingen-Neckarhausen","68542":"Heddesheim","68549":"Ilvesheim","68782":"Brühl","68804":"Altlußheim","68799":"Reilingen","68809":"Neulußheim","67227":"Frankenthal","67229":"Frankenthal",
   // Wiesbaden
   "65183":"Wiesbaden","65185":"Wiesbaden","65187":"Wiesbaden","65189":"Wiesbaden",
   "65191":"Wiesbaden","65193":"Wiesbaden","65195":"Wiesbaden","65197":"Wiesbaden",
