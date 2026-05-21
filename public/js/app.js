@@ -98,8 +98,24 @@ function initSearch() {
 function initCategories() {
   document.querySelectorAll('.cat-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      const isAlle = btn.dataset.cat === 'alle';
+      if (isAlle) {
+        // "Alle" deselektiert alles andere
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      } else {
+        // Einzelne Kategorie togglen
+        btn.classList.toggle('active');
+        // "Alle" deaktivieren wenn spezifische Kategorie gewählt
+        const alleBtn = document.querySelector('.cat-btn[data-cat="alle"]');
+        const anyActive = [...document.querySelectorAll('.cat-btn:not([data-cat="alle"])')].some(b => b.classList.contains('active'));
+        if (anyActive) {
+          alleBtn.classList.remove('active');
+        } else {
+          // Wenn nichts mehr aktiv → "Alle" aktivieren
+          alleBtn.classList.add('active');
+        }
+      }
     });
   });
 }
@@ -205,7 +221,11 @@ function doSearch() {
 
 function filterCars(f) {
   let results = DEMO_CARS.filter(car => {
-    if (f.cat !== 'alle' && car.cat !== f.cat) return false;
+    // Mehrere Kategorien: "suv,limousine" oder "alle"
+    if (f.cat && f.cat !== 'alle') {
+      const cats = f.cat.split(',');
+      if (!cats.includes(car.cat)) return false;
+    }
     if (f.priceMin > 0 && car.price < f.priceMin) return false;
     if (f.priceMax < 999999 && car.price > f.priceMax) return false;
     if (f.yearFrom && car.year < parseInt(f.yearFrom)) return false;
@@ -802,6 +822,12 @@ function renderSelectedBrands() {
         ">×</button>
       </div>`;
   }).join('');
+}
+
+function getSelectedCats() {
+  const active = [...document.querySelectorAll('.cat-btn.active')].map(b => b.dataset.cat);
+  if (!active.length || active.includes('alle')) return 'alle';
+  return active.join(','); // z.B. "suv,limousine"
 }
 
 function getSelectedBrandsQuery() {
