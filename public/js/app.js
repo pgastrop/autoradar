@@ -159,6 +159,7 @@ function doSearch() {
   showToast(`⏳ Suche läuft auf ${filters.city || filters.plz}…`);
 
   // Scrape starten, dann nach 15 Sek. Ergebnisse abholen
+  console.log('[AutoRadar] Sende Scrape-Request an:', window.RAILWAY_URL || 'lokal');
   triggerScrape({
     plz: filters.plz, radius: filters.radius,
     cat: filters.cat, priceMin: filters.priceMin, priceMax: filters.priceMax

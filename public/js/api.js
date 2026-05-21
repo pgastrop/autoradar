@@ -1,6 +1,9 @@
 // Railway-Server URL – wird nach dem Deploy eingetragen
 // Solange leer: Demo-Modus
 const RAILWAY_URL = 'https://gastrop.synology.me';
+// Global für Debug-Zugriff
+window.RAILWAY_URL = RAILWAY_URL;
+console.log('[AutoRadar] API-URL:', RAILWAY_URL || 'Demo-Modus');
 const API_BASE = RAILWAY_URL;
 let serverAvailable = false;
 
