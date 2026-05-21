@@ -150,30 +150,52 @@ function doSearch() {
 
   state.lastSearch = filters;
 
-  // Sofort Demo-Daten zeigen, parallel echten Scrape versuchen
+  // Sofort Demo-Daten zeigen
   const demoResults = filterCars(filters);
   state.results = demoResults;
-  document.getElementById('search-btn-text').textContent = 'Jetzt suchen';
-  document.getElementById('search-spinner').classList.add('hidden');
-  btn.disabled = false;
   renderResults(demoResults, filters);
   updateMonitor(demoResults);
   navigateTo('results');
-  showToast(`📦 ${demoResults.length} Demo-Fahrzeuge · Suche läuft…`);
+  showToast(`⏳ Suche läuft auf ${filters.city || filters.plz}…`);
 
-  // Echten Scrape im Hintergrund versuchen
-  triggerScrape({ plz: filters.plz, radius: filters.radius,
-    cat: filters.cat, priceMin: filters.priceMin, priceMax: filters.priceMax })
-    .then(data => {
-      if (data && data.listings && data.listings.length > 0) {
-        state.results = data.listings;
-        renderResults(data.listings, filters);
-        updateMonitor(data.listings);
-        showToast(`✓ ${data.listings.length} echte Inserate gefunden!`);
-        document.getElementById('notif-dot').classList.remove('hidden');
-      }
-    })
-    .catch(() => {});
+  // Scrape starten, dann nach 15 Sek. Ergebnisse abholen
+  triggerScrape({
+    plz: filters.plz, radius: filters.radius,
+    cat: filters.cat, priceMin: filters.priceMin, priceMax: filters.priceMax
+  }).then(async () => {
+    // 15 Sekunden warten bis Scraper fertig ist
+    showToast(`🔍 Scraper läuft… Ergebnisse in ~15 Sek.`);
+    await new Promise(r => setTimeout(r, 15000));
+
+    // Ergebnisse vom Server holen
+    const liveData = await fetchListings({
+      cat: filters.cat,
+      priceMin: filters.priceMin,
+      priceMax: filters.priceMax,
+      yearFrom: filters.yearFrom,
+      yearTo: filters.yearTo,
+      sources: filters.sources,
+    });
+
+    if (liveData && liveData.length > 0) {
+      state.results = liveData;
+      document.getElementById('search-btn-text').textContent = 'Jetzt suchen';
+      document.getElementById('search-spinner').classList.add('hidden');
+      btn.disabled = false;
+      renderResults(liveData, filters);
+      updateMonitor(liveData);
+      showToast(`✅ ${liveData.length} echte Inserate von ${filters.city || filters.plz}!`);
+      document.getElementById('notif-dot').classList.remove('hidden');
+    } else {
+      showToast(`📦 Demo-Daten · Server hat ${demoResults.length} Treffer`);
+    }
+  }).catch(() => {
+    showToast(`📦 ${demoResults.length} Demo-Fahrzeuge`);
+  });
+
+  document.getElementById('search-btn-text').textContent = 'Jetzt suchen';
+  document.getElementById('search-spinner').classList.add('hidden');
+  btn.disabled = false;
 
   startMonitor();
 }
@@ -503,11 +525,28 @@ function renderActivity(cars) {
 
 function startMonitor() {
   if (state.monitorInterval) clearInterval(state.monitorInterval);
-  const interval = parseInt(document.getElementById('refresh-interval').value) * 1000;
-  state.monitorInterval = setInterval(() => {
-    if (state.lastSearch) {
-      const results = filterCars(state.lastSearch);
-      updateMonitor(results);
+  state.monitorInterval = setInterval(async () => {
+    // Echte Daten vom Server holen
+    const liveListings = await fetchListings(state.lastSearch || {});
+    if (liveListings && liveListings.length > 0) {
+      // Neue Inserate erkennen
+      const newOnes = liveListings.filter(l => !state.results.find(r => r.id === l.id));
+      if (newOnes.length > 0) {
+        state.results = [...newOnes, ...state.results];
+        showToast(`🆕 ${newOnes.length} neue Inserate!`);
+        document.getElementById('notif-dot').classList.remove('hidden');
+      }
+      updateMonitor(liveListings);
+    } else if (state.lastSearch) {
+      updateMonitor(filterCars(state.lastSearch));
+    }
+    // Stats aktualisieren
+    const stats = await fetchStats();
+    if (stats) {
+      document.getElementById('stat-today').textContent = stats.today || 0;
+      document.getElementById('stat-week').textContent  = stats.total || 0;
+      document.getElementById('stat-avg').textContent   = stats.avgPrice ? '€'+Math.round(stats.avgPrice/1000)+'k' : '—';
+      document.getElementById('stat-low').textContent   = stats.minPrice ? '€'+Math.round(stats.minPrice/1000)+'k' : '—';
     }
   }, interval);
 }
