@@ -120,6 +120,39 @@
         </div>
 
         <div class="section-block">
+          <div class="block-label">MARKE &amp; MODELL</div>
+          
+          <!-- Gewählte Marken/Modelle als Tags -->
+          <div id="brand-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:0"></div>
+          
+          <!-- Marken-Suche -->
+          <div style="position:relative;margin-bottom:8px">
+            <input type="text" id="brand-search-input" placeholder="Marke suchen z.B. BMW, VW…"
+              autocomplete="off"
+              style="width:100%;padding:10px 14px;font-size:15px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-surface);color:var(--text-primary)">
+            <div id="brand-dropdown" style="
+              display:none;position:absolute;top:100%;left:0;right:0;z-index:50;
+              background:var(--bg-surface);border:1px solid var(--border);
+              border-radius:var(--radius-md);max-height:200px;overflow-y:auto;
+              box-shadow:0 4px 20px rgba(0,0,0,0.3);margin-top:4px;
+            "></div>
+          </div>
+
+          <!-- Modell-Auswahl (erscheint wenn Marke gewählt) -->
+          <div id="model-panel" style="display:none">
+            <div id="model-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+            <button onclick="confirmModels()" style="
+              width:100%;padding:9px;font-size:13px;font-weight:600;
+              background:var(--accent-dim);color:var(--accent);
+              border:1px solid var(--border-accent);border-radius:var(--radius-md);
+            ">Modelle übernehmen ✓</button>
+          </div>
+
+          <!-- Alle gewählten Marken/Modelle -->
+          <div id="selected-brands-list" style="margin-top:8px"></div>
+        </div>
+
+        <div class="section-block">
           <div class="block-label">PREISRAHMEN</div>
           <div class="price-row">
             <div class="price-input-wrap">
@@ -454,6 +487,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/brands.js"></script>
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
 </body>
