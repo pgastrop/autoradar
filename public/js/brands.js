@@ -2,7 +2,7 @@
 const BRANDS_DB = {
   "Audi": ["A1","A2","A3","A4","A5","A6","A7","A8","Q2","Q3","Q4 e-tron","Q5","Q7","Q8","TT","R8","e-tron","S3","S4","S5","S6","RS3","RS4","RS5","RS6","RS7"],
   "BMW": ["1er","2er","3er","4er","5er","6er","7er","8er","X1","X2","X3","X4","X5","X6","X7","Z4","M2","M3","M4","M5","M8","iX","i4","i5","i7","i3","i8"],
-  "Mercedes-Benz": ["A-Klasse","B-Klasse","C-Klasse","E-Klasse","S-Klasse","CLA","CLS","GLA","GLB","GLC","GLE","GLS","AMG GT","EQA","EQB","EQC","EQE","EQS","Vito","Sprinter"],
+  "Mercedes-Benz": ["A-Klasse","B-Klasse","C-Klasse","E-Klasse","S-Klasse","CLA","CLS","CLK","SLK","SL","SLC","GLA","GLB","GLC","GLE","GLS","GLK","GL","GLA","ML","M-Klasse","R-Klasse","X-Klasse","AMG GT","EQA","EQB","EQC","EQE","EQS","EQV","Marco Polo","V-Klasse","Vito","Viano","Sprinter","Citan"],
   "Volkswagen": ["Golf","Polo","Passat","Tiguan","T-Roc","T-Cross","Touareg","Touran","Sharan","Up","Caddy","ID.3","ID.4","ID.5","ID.7","Arteon","Phaeton"],
   "Opel": ["Astra","Corsa","Insignia","Mokka","Crossland","Grandland","Zafira","Meriva","Adam","Agila","Combo","Vivaro"],
   "Ford": ["Fiesta","Focus","Mondeo","Kuga","Puma","EcoSport","Mustang","Explorer","Ranger","Transit","S-Max","Galaxy","Edge"],
