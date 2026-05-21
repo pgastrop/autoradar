@@ -545,10 +545,10 @@ function startMonitor() {
     if (stats) {
       document.getElementById('stat-today').textContent = stats.today || 0;
       document.getElementById('stat-week').textContent  = stats.total || 0;
-      document.getElementById('stat-avg').textContent   = stats.avgPrice ? '€'+Math.round(stats.avgPrice/1000)+'k' : '—';
+      document.getElementById('stat-avg').textContent   = stats.avgPrice ? '€'+Math.round(stats.avgPrice/1000).toLocaleString('de-DE')+'k' : '—';
       document.getElementById('stat-low').textContent   = stats.minPrice ? '€'+Math.round(stats.minPrice/1000)+'k' : '—';
     }
-  }, interval);
+  }, 60000);
 }
 
 // ===== PRICE CHART =====
