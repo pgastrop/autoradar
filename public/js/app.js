@@ -1,4 +1,19 @@
 
+// ===== PREIS-FORMATIERUNG =====
+function formatPrice(price) {
+  if (!price || typeof price !== 'number') return 'Preis auf Anfrage';
+  const p = parseInt(price);
+  if (isNaN(p) || p < 200 || p > 200000) return 'Preis auf Anfrage';
+  return '€ ' + p.toLocaleString('de-DE');
+}
+
+function formatKm(km) {
+  if (!km || typeof km !== 'number') return '—';
+  const k = parseInt(km);
+  if (isNaN(k) || k < 0 || k > 1000000) return '—';
+  return k.toLocaleString('de-DE') + ' km';
+}
+
 // ===== QUELLEN-FARBEN & LOGOS =====
 const SOURCE_CONFIG = {
   'autoscout':     { name: 'AutoScout24',   color: '#FF6B00', bg: 'rgba(255,107,0,0.12)',  icon: '🔶' },
@@ -300,7 +315,7 @@ function buildCarCard(car) {
 
       <div class="car-card-body">
         <div class="car-card-title">${car.title}</div>
-        <div class="car-card-meta">${car.year || '—'} · ${car.km ? car.km.toLocaleString('de-DE') + ' km' : '—'} · ${car.fuel || '—'} · ${car.power || '—'}</div>
+        <div class="car-card-meta">${car.year || '—'} · ${formatKm(car.km)} · ${car.fuel || '—'} · ${car.power || '—'}</div>
         <div class="car-card-footer">
           <div class="car-card-price">
             ${car.price ? '€ ' + car.price.toLocaleString('de-DE') : 'Preis auf Anfrage'}
@@ -506,7 +521,7 @@ function renderActivity(cars) {
   ];
   feed.innerHTML = cars.slice(0, 8).map((car, i) => {
     const url = car.url || car.link || '#';
-    const price = car.price ? '€ ' + car.price.toLocaleString('de-DE') : 'Preis auf Anfrage';
+    const price = formatPrice(car.price);
     const dist = car.dist ? ' · 📍 ' + car.dist + ' km' : '';
     const src = getSource(car);
     const time = car.age || (car.scrapedAt ? new Date(car.scrapedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) + ' Uhr' : '');
@@ -579,8 +594,10 @@ function startMonitor() {
     if (stats) {
       document.getElementById('stat-today').textContent = stats.today || 0;
       document.getElementById('stat-week').textContent  = stats.total || 0;
-      document.getElementById('stat-avg').textContent   = stats.avgPrice ? '€'+Math.round(stats.avgPrice/1000).toLocaleString('de-DE')+'k' : '—';
-      document.getElementById('stat-low').textContent   = stats.minPrice ? '€'+Math.round(stats.minPrice/1000)+'k' : '—';
+      const avg = (stats.avgPrice && stats.avgPrice < 200000) ? stats.avgPrice : null;
+      document.getElementById('stat-avg').textContent = avg ? '€'+Math.round(avg/1000)+'k' : '—';
+      const low = (stats.minPrice && stats.minPrice < 200000) ? stats.minPrice : null;
+      document.getElementById('stat-low').textContent = low ? '€'+Math.round(low/1000)+'k' : '—';
     }
   }, 60000);
 }
