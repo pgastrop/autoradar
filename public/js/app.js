@@ -146,6 +146,7 @@ function doSearch() {
     kmMin: parseInt(document.getElementById('km-min').value) || 0,
     kmMax: parseInt(document.getElementById('km-max').value) || 999999,
     sources: [...document.querySelectorAll('.source-btn.active')].map(s => s.dataset.src),
+    brands: getSelectedBrandsQuery(),
   };
 
   state.lastSearch = filters;
@@ -162,7 +163,8 @@ function doSearch() {
   console.log('[AutoRadar] Sende Scrape-Request an:', window.RAILWAY_URL || 'lokal');
   triggerScrape({
     plz: filters.plz, radius: filters.radius,
-    cat: filters.cat, priceMin: filters.priceMin, priceMax: filters.priceMax
+    cat: filters.cat, priceMin: filters.priceMin, priceMax: filters.priceMax,
+    brands: getSelectedBrandsQuery(),
   }).then(async () => {
     // 15 Sekunden warten bis Scraper fertig ist
     showToast(`🔍 Scraper läuft… Ergebnisse in ~15 Sek.`);
@@ -657,3 +659,162 @@ function updateLastUpdate() {
   const el = document.getElementById('last-update');
   if (el) el.textContent = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
+
+// ===== MARKEN & MODELLE LOGIK =====
+
+// State: { "BMW": ["3er","5er"], "VW": [] (=alle Modelle) }
+state.selectedBrands = {};
+let _currentBrandForModels = null;
+
+function initBrandSearch() {
+  const input    = document.getElementById('brand-search-input');
+  const dropdown = document.getElementById('brand-dropdown');
+  if (!input) return;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if (!q) { dropdown.style.display = 'none'; return; }
+
+    const matches = BRANDS_SORTED.filter(b => b.toLowerCase().includes(q)).slice(0, 12);
+    if (!matches.length) { dropdown.style.display = 'none'; return; }
+
+    dropdown.innerHTML = matches.map(b => `
+      <div onclick="selectBrand('${b}')" style="
+        padding:10px 14px;font-size:14px;cursor:pointer;
+        border-bottom:1px solid var(--border);
+        transition:background 0.1s;
+      " onmouseover="this.style.background='var(--bg-raised)'"
+         onmouseout="this.style.background=''">
+        ${b}
+        <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px">
+          ${BRANDS_DB[b]?.length || 0} Modelle
+        </span>
+      </div>`).join('');
+    dropdown.style.display = 'block';
+  });
+
+  // Dropdown schließen bei Klick außerhalb
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#brand-search-input') && !e.target.closest('#brand-dropdown')) {
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
+function selectBrand(brand) {
+  const dropdown = document.getElementById('brand-dropdown');
+  const input    = document.getElementById('brand-search-input');
+  dropdown.style.display = 'none';
+  input.value = '';
+  _currentBrandForModels = brand;
+
+  // Modell-Panel anzeigen
+  const models = BRANDS_DB[brand] || [];
+  const panel  = document.getElementById('model-panel');
+  const tags   = document.getElementById('model-tags');
+
+  tags.innerHTML = `
+    <div onclick="toggleAllModels('${brand}')" style="
+      padding:5px 12px;border-radius:99px;font-size:12px;cursor:pointer;
+      background:var(--accent-dim);color:var(--accent);
+      border:1px solid var(--border-accent);font-weight:600;margin-bottom:4px;
+    ">Alle Modelle</div>
+    ${models.map(m => `
+      <div class="model-tag" data-model="${m}" onclick="toggleModel(this,'${brand}','${m}')" style="
+        padding:5px 12px;border-radius:99px;font-size:12px;cursor:pointer;
+        background:var(--bg-surface);color:var(--text-secondary);
+        border:1px solid var(--border);transition:all 0.15s;
+      ">${m}</div>`).join('')}`;
+
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function toggleModel(el, brand, model) {
+  el.classList.toggle('active');
+  if (el.classList.contains('active')) {
+    el.style.background = 'var(--accent-dim)';
+    el.style.color = 'var(--accent)';
+    el.style.borderColor = 'var(--border-accent)';
+  } else {
+    el.style.background = 'var(--bg-surface)';
+    el.style.color = 'var(--text-secondary)';
+    el.style.borderColor = 'var(--border)';
+  }
+}
+
+function toggleAllModels(brand) {
+  // Alle deselektieren
+  document.querySelectorAll('.model-tag.active').forEach(el => {
+    el.classList.remove('active');
+    el.style.background = 'var(--bg-surface)';
+    el.style.color = 'var(--text-secondary)';
+    el.style.borderColor = 'var(--border)';
+  });
+}
+
+function confirmModels() {
+  const brand = _currentBrandForModels;
+  if (!brand) return;
+
+  const selectedModels = [...document.querySelectorAll('.model-tag.active')]
+    .map(el => el.dataset.model);
+
+  // Marke mit Modellen speichern (leeres Array = alle Modelle)
+  state.selectedBrands[brand] = selectedModels;
+
+  // Panel ausblenden
+  document.getElementById('model-panel').style.display = 'none';
+  _currentBrandForModels = null;
+
+  renderSelectedBrands();
+}
+
+function removeBrand(brand) {
+  delete state.selectedBrands[brand];
+  renderSelectedBrands();
+}
+
+function renderSelectedBrands() {
+  const container = document.getElementById('selected-brands-list');
+  const brands    = Object.keys(state.selectedBrands);
+
+  if (!brands.length) { container.innerHTML = ''; return; }
+
+  container.innerHTML = brands.map(brand => {
+    const models  = state.selectedBrands[brand];
+    const modelTx = models.length ? models.join(', ') : 'Alle Modelle';
+    return `
+      <div style="
+        display:flex;align-items:center;justify-content:space-between;
+        padding:10px 12px;margin-bottom:6px;
+        background:var(--bg-surface);border:1px solid var(--border-accent);
+        border-radius:var(--radius-md);border-left:3px solid var(--accent);
+      ">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--accent)">${brand}</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">${modelTx}</div>
+        </div>
+        <button onclick="removeBrand('${brand}')" style="
+          width:28px;height:28px;border-radius:50%;font-size:16px;
+          background:var(--bg-raised);color:var(--text-secondary);
+          display:flex;align-items:center;justify-content:center;
+        ">×</button>
+      </div>`;
+  }).join('');
+}
+
+function getSelectedBrandsQuery() {
+  const brands = Object.keys(state.selectedBrands);
+  if (!brands.length) return null;
+  // Format: "BMW:3er,5er|VW:|Audi:A4"
+  return brands.map(b => {
+    const models = state.selectedBrands[b];
+    return `${b}:${models.join(',')}`;
+  }).join('|');
+}
+
+// Init beim Laden
+document.addEventListener('DOMContentLoaded', () => {
+  initBrandSearch();
+});
