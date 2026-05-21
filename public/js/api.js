@@ -38,11 +38,13 @@ async function triggerScrape(params) {
 async function fetchListings(filters = {}) {
   const p = new URLSearchParams();
   if (filters.cat && filters.cat !== 'alle') p.set('cat', filters.cat);
-  if (filters.priceMin > 0)      p.set('priceMin', filters.priceMin);
-  if (filters.priceMax < 999999) p.set('priceMax', filters.priceMax);
-  if (filters.yearFrom) p.set('yearFrom', filters.yearFrom);
-  if (filters.yearTo)   p.set('yearTo',   filters.yearTo);
-  if (filters.sources?.length) p.set('sources', filters.sources.join(','));
+  if (filters.priceMin > 0)       p.set('priceMin', filters.priceMin);
+  if (filters.priceMax < 999999)  p.set('priceMax', filters.priceMax);
+  if (filters.yearFrom)           p.set('yearFrom', filters.yearFrom);
+  if (filters.yearTo)             p.set('yearTo',   filters.yearTo);
+  if (filters.kmMax)              p.set('kmMax',    filters.kmMax);
+  if (filters.sources?.length)    p.set('sources',  filters.sources.join(','));
+  if (filters.brands)             p.set('brands',   filters.brands);
   try {
     const res = await fetch(`/api/listings?${p}`);
     const data = await res.json();

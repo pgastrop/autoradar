@@ -154,7 +154,7 @@ function doSearch() {
     plz,
     city: lookupPLZ(plz) || plz,
     radius: parseInt(document.getElementById('radius-slider').value),
-    cat: document.querySelector('.cat-btn.active')?.dataset.cat || 'alle',
+    cat: getSelectedCats(),
     priceMin: parseInt(document.getElementById('price-min').value) || 0,
     priceMax: parseInt(document.getElementById('price-max').value) || 999999,
     yearFrom: document.getElementById('year-from').value,
@@ -188,12 +188,14 @@ function doSearch() {
 
     // Ergebnisse vom Server holen
     const liveData = await fetchListings({
-      cat: filters.cat,
+      cat:      filters.cat,
       priceMin: filters.priceMin,
       priceMax: filters.priceMax,
       yearFrom: filters.yearFrom,
-      yearTo: filters.yearTo,
-      sources: filters.sources,
+      yearTo:   filters.yearTo,
+      kmMax:    filters.kmMax < 999999 ? filters.kmMax : null,
+      sources:  filters.sources,
+      brands:   filters.brands,
     });
 
     if (liveData && liveData.length > 0) {
@@ -550,7 +552,16 @@ function startMonitor() {
   if (state.monitorInterval) clearInterval(state.monitorInterval);
   state.monitorInterval = setInterval(async () => {
     // Echte Daten vom Server holen
-    const liveListings = await fetchListings(state.lastSearch || {});
+    const s = state.lastSearch || {};
+    const liveListings = await fetchListings({
+      cat:      s.cat,
+      priceMin: s.priceMin,
+      priceMax: s.priceMax,
+      yearFrom: s.yearFrom,
+      yearTo:   s.yearTo,
+      sources:  s.sources,
+      brands:   s.brands,
+    });
     if (liveListings && liveListings.length > 0) {
       // Neue Inserate erkennen
       const newOnes = liveListings.filter(l => !state.results.find(r => r.id === l.id));
